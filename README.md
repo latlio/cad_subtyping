@@ -1,6 +1,6 @@
-# Code for Cad Subtpying
+# Code for "Prediction of Coronary Artery Disease Subtypes Using Clinical and Genetic Risk Factors"
 
-Lathan Liou
+**Lathan Liou**
 Judit Garcia Gonzalez
 Beatrice Wu
 Zhe Wang
