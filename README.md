@@ -10,7 +10,7 @@ Amy R Kontorovich
 Jason C Kovacic
 Paul O'Reilly
 
-This paper has been submitted for publication in Nature Medicine
+This paper has been submitted for publication in Arteriosclerosis, Thrombosis, and Vascular Biology (ATVB).
 
 ![](/figures/main_figure.png)
 
@@ -19,7 +19,15 @@ This paper has been submitted for publication in Nature Medicine
 
 ## Abstract
 
-Coronary Artery Disease (CAD) is a complex, heterogeneous disease with distinct underlying etiological mechanisms. These different etiologies may give rise to multiple subtypes of CAD that would benefit from alternative therapeutic approaches. However, whether CAD subtypes can be successfully predicted using clinical and genetic factors is unknown. Here we developed and optimized statistical models incorporating clinical and genetic factors to predict CAD subtypes in 20,935 CAD patients in the UK Biobank, with external validation in the US-based All of Us (9,962 CAD patients). Subtypes were defined as high vs. normal low-density lipoprotein (LDL) levels, high vs. normal lipoprotein A (Lpa) levels, occlusive vs. non-occlusive CAD, stable vs. unstable, high vs. low 10-year atherosclerotic cardiovascular disease (ASCVD risk) score. Clinical risk factors included levels of apolipoprotein A, apolipoprotein B, high-density lipoprotein, triglycerides, and C-reactive protein. Genetic factors were genome-wide and pathway-based polygenic risk scores (PRS).  Results show models that combine clinical and genetic factors lead to greater predictive power than clinical-only and genetics-only models. Pathway-based PRS typically increased discriminatory power more than genome-wide PRS, while providing insights into subtype etiology. For example, pathways most predictive of the high-Lpa subtype included fibronectin binding (P=6x10-260), apolipoprotein binding (P=6.2x10-252), and serine-type endopeptidase activity (P=1.7x10-203). Overall, we demonstrate that prediction models can distinguish CAD subtypes and that pathway PRSs hold particular promise for increased biological understanding and tailored treatment of CAD subtypes.
+**Background**
+Coronary Artery Disease (CAD) is a complex, heterogeneous disease with distinct etiological mechanisms. These different etiologies may give rise to multiple subtypes of CAD that could benefit from alternative preventions and treatments. However, so far there have been no systematic efforts to predict CAD subtypes using clinical and genetic factors. 
+**Methods**
+Here we trained and applied statistical models incorporating clinical and genetic factors to predict CAD subtypes in 26,036 CAD patients in the UK Biobank. We performed external validation of the UK Biobank models in the US-based All of Us cohort (8,598 CAD patients). Subtypes were defined as high vs. normal low-density lipoprotein (LDL) levels, high vs. normal lipoprotein A (Lpa) levels, ST-elevation myocardial infarction (STEMI) vs. non-ST-elevation myocardial infarction (NSTEMI), occlusive vs. non-occlusive CAD, and stable vs. unstable CAD. Clinical predictors included levels of apolipoprotein A, apolipoprotein B, high-density lipoprotein, triglycerides, and C-reactive protein. Genetic predictors were genome-wide and pathway-based polygenic risk scores (PRS). 
+**Results**
+Results showed that both clinical-only and genetic-only models can predict CAD subtypes, while combining clinical and genetic factors leads to greater predictive accuracy. Pathway-based PRS had higher discriminatory power than genome-wide PRS for the Lpa and LDL subtypes, and provided insights into their etiologies. The ten pathway PRS most predictive of the LDL subtype involved cholesterol metabolism. Pathway PRS models had poor generalizability to the All of Us cohort.
+**Conclusions**
+In summary, we present the first systematic demonstration that CAD subtypes can be distinguished by clinical and genomic risk factors, which could have important implications for stratified cardiovascular medicine.
+
 
 
 ## Software implementation
@@ -53,6 +61,8 @@ And see the [PRSice documentation](https://github.com/choishingwan/PRSice) for h
 5. `analysis/make_dotplots.R` contains code that creates the dotplots (Figure 4) of pathways
 6. `analysis/analyze_drug_targets.R` contains code that links our pathways to a gene drug database   
 7. `analysis/common_prset_fcts` contains general purpose functions used throughout the codebase
+8. `analysis/extract_info.R` contains functions to extract SNP information about the pathway models
+9. `analysis/obtain_info_about_lasso.R` contains functions to extract information about which pathways were selected by the Lasso models
 
 Make sure you change paths to the relevant ones on your machine/coding environment.
 
@@ -69,6 +79,4 @@ All source code is made available under a BSD 3-clause license. You can freely
 use and modify the code, without warranty, so long as you provide attribution
 to the authors. See `LICENSE.md` for the full license text.
 
-The manuscript text is not open source. The authors reserve the rights to the
-article content, which is currently submitted for publication in the
-Nature Medicine.
+The authors reserve the rights to the article content.

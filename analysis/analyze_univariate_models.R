@@ -1,4 +1,3 @@
-#Run other univariate models, variables + genome-wide, variables + prset
 # Ideally run this on Minerva
 # Author: Lathan Liou
 # Contact: lathan.liou@icahn.mssm.edu
@@ -37,10 +36,11 @@ library(ggrepel)
 library(boot)
 library(patchwork)
 library(qs)
+library(lmtest)
 library(doParallel)
-nodes <- detectCores() - 2
-cl <- makeCluster(nodes)
-registerDoParallel(cl)
+# nodes <- detectCores() - 2
+# cl <- makeCluster(nodes)
+# registerDoParallel(cl)
 # library(glmnetUtils)
 conflicted::conflict_prefer("select", "dplyr")
 conflicted::conflict_prefer("filter", "dplyr")
@@ -376,17 +376,19 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
   # select_prset_best <- prset_best %>%
   #   select(fid, iid, all_of(lasso_selected_pathways))
   
+  # 8/1/2024: Adding Lpa as univariate per ATVB reviewer comment
+  
   univariate <- c("ascvd", "apoa_std", "apob_std", "trigly_std", "ldl_std", "hdl_std",
-                  "crp_std")
+                  "crp_std", "lpa_std")
   outcomes <- c("cad_bin", "unstable_cad_bin", "occlusive_cad_bin", "ldl_bin",
-                "lpa_bin", "ascvd_cad_bin")
+                "lpa_bin", "stemi_cad_bin")
   prset_colnames <- colnames(select_prset_best %>% select(-c(fid, iid)))
   
   combined_df <- pheno_df %>%
     left_join(original_ukb_df %>%
                 select(fid, iid, chol, hdl_chol, sys_bp_auto, smoke, diabetes,
                        apoa_std, apob_std, trigly_std, ldl_std, hdl_std,
-                       crp_std, bp_med_bin, diet, pa, ses, pm25),
+                       crp_std, lpa_std, bp_med_bin),
               by = c("fid", "iid")) %>% 
     drop_na(age, chol, hdl_chol, sys_bp_auto, smoke, diabetes) %>% 
     mutate(ascvd = case_when(
@@ -580,6 +582,23 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
          height = 9)
   cor.test(combined_df$crp_std, combined_df$prs_std)
   
+  prs_scatter_lpa_plot <- ggplot(combined_df, aes(x = lpa_std, 
+                                                  y = prs_std)) + 
+    geom_point() + 
+    theme_bw() +
+    labs(x = "Lp(a) (standardized)",
+         y = "PRS (standardized)") +
+    theme(axis.text = element_text(size = 20),
+          axis.title = element_text(size = 20),
+          panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+          panel.background = element_blank(), axis.line = element_line(colour = "black"),
+          legend.position=c(0.1,0.9))
+  ggsave(paste0(results_path, "/", run_name, "_prs_scatter_lpa_plot.png"), 
+         prs_scatter_lpa_plot,
+         width = 10,
+         height = 9)
+  cor.test(combined_df$lpa_std, combined_df$prs_std)
+  
   # Train models ----
   set.seed(seed)
   train_df <- combined_df %>%
@@ -652,6 +671,13 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
            env_formulas <- env_formulas %>%
              filter(outcomes == outcome_var)
          },
+         stemi_cad_bin = {
+           formulas <- formulas %>%
+             filter(outcomes == outcome_var)
+           
+           env_formulas <- env_formulas %>%
+             filter(outcomes == outcome_var)
+         },
          unstable_cad_bin = {
            formulas <- formulas %>%
              filter(outcomes == outcome_var)
@@ -690,6 +716,10 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
         !!sym(outcome_var) == 0 ~ "Normal LDL",
         !!sym(outcome_var) == 1 ~ "High LDL",
       )))
+    subtype_pie_colors <- c(
+      "High LDL" = "#F8766D",
+      "Normal LDL" = "#00BFC4"
+    )
   } else if(str_detect(pheno_df_path, "lpa")) {
     plot_title <- "Lpa Subtype"
     subtype_df <- combined_df %>%
@@ -701,6 +731,25 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
         !!sym(outcome_var) == 0 ~ "Normal Lpa",
         !!sym(outcome_var) == 1 ~ "High Lpa",
       ))
+    subtype_pie_colors <- c(
+      "High Lpa" = "#F8766D",
+      "Normal Lpa" = "#00BFC4"
+    )
+  } else if(str_detect(pheno_df_path, "stemi")) {
+    plot_title <- "STEMI CAD Subtype"
+    subtype_df <- combined_df %>%
+      group_by(!!sym(outcome_var)) %>%
+      summarize(n = n(),
+                prop = n()/nrow(.) * 100) %>%
+      mutate(ypos = cumsum(prop) - 0.5*prop) %>%
+      mutate("{outcome_var}" := case_when(
+        !!sym(outcome_var) == 0 ~ "NSTEMI",
+        !!sym(outcome_var) == 1 ~ "STEMI",
+      ))
+    subtype_pie_colors <- c(
+      "STEMI" = "#F8766D",
+      "NSTEMI" = "#00BFC4"
+    )
   } else if(str_detect(pheno_df_path, "unstable")) {
     plot_title <- "Unstable CAD Subtype"
     subtype_df <- combined_df %>%
@@ -712,6 +761,10 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
         !!sym(outcome_var) == 0 ~ "Stable",
         !!sym(outcome_var) == 1 ~ "Unstable",
       ))
+    subtype_pie_colors <- c(
+      "Unstable" = "#F8766D",
+      "Stable" = "#00BFC4"
+    )
   } else if(str_detect(pheno_df_path, "occlusive")) {
     plot_title <- "Occlusive CAD Subtype"
     subtype_df <- combined_df %>%
@@ -723,6 +776,10 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
         !!sym(outcome_var) == 0 ~ "Non-occlusive",
         !!sym(outcome_var) == 1 ~ "Occlusive",
       ))
+    subtype_pie_colors <- c(
+      "Occlusive" = "#F8766D",
+      "Non-occlusive" = "#00BFC4"
+    )
   } else if(str_detect(pheno_df_path, "ascvd")) {
     plot_title <- "ASCVD Risk Score Subtype"
     subtype_df <- combined_df %>%
@@ -734,6 +791,10 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
         !!sym(outcome_var) == 0 ~ "Low ASCVD Score",
         !!sym(outcome_var) == 1 ~ "High ASCVD Score",
       ))
+    subtype_pie_colors <- c(
+      "High ASCVD Score" = "#F8766D",
+      "Low ASCVD Score" = "#00BFC4"
+    )
   } else {
     plot_title <- "CAD Case/Control"
     subtype_df <- combined_df %>%
@@ -745,6 +806,10 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
         !!sym(outcome_var) == 0 ~ "No CAD",
         !!sym(outcome_var) == 1 ~ "CAD",
       ))
+    subtype_pie_colors <- c(
+      "CAD" = "#F8766D",
+      "No CAD" = "#00BFC4"
+    )
   }
   
   if(str_detect(run_name, "_bin")) {
@@ -915,11 +980,11 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
     prset_only_boot_ci <- qread(paste0(results_path, "/", run_name, "_prset_only_boot_lasso.qs"))
     
     # Lasso CV plot
-    # png(paste0(results_path, "/", run_name, "_prset_only_model_cv_plot.png"),
-    #     width = "720",
-    #     height = "648")
-    # plot(prset_only_model$model)
-    # dev.off()
+    png(paste0(results_path, "/", run_name, "_prset_only_model_cv_plot.png"),
+        width = "720",
+        height = "648")
+    plot(prset_only_model$model)
+    dev.off()
     
     # Pathway Weight plot ----
     prset_only_coefs_df <- prset_only_model$model %>%
@@ -1162,6 +1227,7 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
                                            aes(x = prediction,
                                                fill = model)) +
       geom_density(alpha = 0.4) +
+      # geom_histogram(bins = 100, alpha = 0.4) + 
       scale_x_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.1)) +
       xlab("Predicted Probability") +
       ylab("Density") +
@@ -1289,11 +1355,15 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
                                  model = "Genome-wide PRS + Age, Sex, PCs",
                                  ll = prs_only_boot_ci[1],
                                  ul = prs_only_boot_ci[3]),
+                                 # ll = prs_only_boot_ci[4][1] %>% unlist %>% .[2],
+                                 # ul = prs_only_boot_ci[4][1] %>% unlist %>% .[3]),
                           tibble(auc = prset_only_model$test_auc[[1]],
                                  variable = "pathway_prs",
                                  model = "Pathway PRS + Age, Sex, PCs",
+                                 # ll = prset_only_boot_ci[4][1] %>% unlist %>% .[2],
                                  ll = prset_only_boot_ci[1],
                                  ul = prset_only_boot_ci[3]),
+                                 # ul = prset_only_boot_ci[4][1] %>% unlist %>% .[3]),
                           univariate_aucs,
                           genome_aucs,
                           prset_aucs) %>%
@@ -1306,7 +1376,8 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
         variable == "ldl_std" ~ "LDL",
         variable == "hdl_std" ~ "HDL",
         variable == "trigly_std" ~ "Triglycerides",
-        variable == "crp_std" ~ "CRP"
+        variable == "crp_std" ~ "CRP",
+        variable == "lpa_std" ~ "Lp(a)"
       )) %>%
       mutate(variable = factor(variable, levels = c("PRS",
                                                     "Pathway PRS",
@@ -1316,6 +1387,7 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
                                                     "LDL",
                                                     "HDL",
                                                     "Triglycerides",
+                                                    "Lp(a)",
                                                     "CRP")),
              model = factor(model, levels = c("Genome-wide PRS + Age, Sex, PCs",
                                               "Pathway PRS + Age, Sex, PCs",
@@ -1345,8 +1417,10 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
                               y = prop,
                               fill = !!sym(outcome_var))) + 
       geom_bar(stat = "identity", width = 1, color = "white") +
-      geom_text(aes(label = round(prop, 2),
-                    y = ypos),
+      # geom_text(aes(label = round(prop, 1),
+      #               y = ypos),
+      geom_text(aes(label = round(prop, 1)),
+                position = position_stack(vjust = 0.5),
                 size = 6) +
       # ggrepel::geom_label_repel(aes(label = !!sym(outcome_var),
       #                               y = ypos),
@@ -1361,9 +1435,45 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
             panel.grid = element_blank(),
             legend.position = "bottom",
             legend.title = element_blank()) +
-      guides(fill = guide_legend(nrow = 2))
+      guides(fill = guide_legend(nrow = 2)) +
+      scale_fill_manual(
+        values = subtype_pie_colors,
+        limits = names(subtype_pie_colors)
+      )
     subtype_pie
     
+    #### For presentation ----
+    ggplot(all_aucs, aes(x = forcats::fct_rev(variable), y = auc, fill = forcats::fct_rev(model))) +
+      geom_col(position = position_dodge2(width = .9, preserve = "single")) +
+      geom_linerange(aes(ymin = ll,
+                         ymax = ul),
+                     position = position_dodge2(width = .9, preserve = "single")) +
+      coord_flip(ylim = c(0.5, 0.75)) + 
+      theme_bw() +
+      theme(plot.title = element_text(size = 22),
+            axis.title.x = element_text(size = 18), 
+            axis.title.y = element_blank(),
+            panel.grid = element_blank(), 
+            # legend.position = "bottom",
+            legend.position = "none",
+            axis.text.x = element_text(angle = 45, hjust = 1, size = 16),
+            axis.text.y = element_text(size = 16)) +
+      # ggsci::scale_fill_npg() +
+      scale_fill_manual(values = c(`Genome-wide PRS + Age, Sex, PCs` = "#70b7f3",
+                                   `Pathway PRS + Age, Sex, PCs` = "#146bb4",
+                                   `1: Risk Factor + Age, Sex, PCs` = "#f28982",
+                                   `2: Model 1 + Genome-wide PRS` = "#ddaaf8",
+                                   `3: Model 1 + Pathway PRS` = "#7c19b2")) +
+      labs(x = "Variable",
+           y = "Test AUC",
+           fill = "Model",
+           title = plot_title) +
+      guides(fill = guide_legend(nrow = 2))
+      # annotation_custom(
+      #   ggplotGrob(subtype_pie),
+      #   xmin = 0.5, xmax = 2, ymin = 0.8, ymax = 1
+      # )
+    #### ----
     all_auc_plot <- ggplot(all_aucs, aes(x = variable, y = auc, fill = model)) +
       geom_col(position = position_dodge2(width = .9, preserve = "single")) +
       # geom_text(aes(x = variable, y = auc, 
@@ -1398,7 +1508,7 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
       guides(fill = guide_legend(nrow = 2)) +
       annotation_custom(
         ggplotGrob(subtype_pie),
-        xmin = 0.5, xmax = 2, ymin = 0.8, ymax = 1.1
+        xmin = 0.5, xmax = 2, ymin = 0.8, ymax = 1
       )
     
     ggsave(paste0(results_path, "/", run_name, "_univariate_test_auc.png"), 
@@ -1453,6 +1563,27 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
     })
     
     # Testing differences in AUC ----
+    # genome_test <- map(seq(length(univariate_models)),
+    #                    ~ lrtest(univariate_models[[.x]]$model, 
+    #                             genome_models[[.x]]$model))
+    # 
+    # prset_test <- map(seq(length(univariate_models)),
+    #                   ~ lrtest(univariate_models[[.x]]$test_roc, 
+    #                                    prset_models[[.x]]$test_roc,
+    #                                    boot.n = 5000,
+    #                                    parallel = TRUE))
+    # 
+    # genome_delta <- map(seq(length(genome_test)), 
+    #                     ~ genome_test[[.x]]$estimate[2] - genome_test[[.x]]$estimate[1]) %>%
+    #   unlist()
+    # 
+    # genome_delta_p <- map(seq(length(genome_test)), 
+    #                       ~ genome_test[[.x]]$`Pr(>Chisq)`) %>%
+    #   unlist()
+    # 
+    # prset_delta <- map(seq(length(prset_test)), 
+    #                    ~ prset_test[[.x]]$estimate[2] - prset_test[[.x]]$estimate[1]) %>%
+    #   unlist()
     test_auc_difference(.results_path = results_path,
                         .run_name = run_name)
     
@@ -1720,6 +1851,29 @@ lpa_bin_allpop <- run_analysis(original_ukb_path = "cad_subtype/output_data/all_
                                outcome_var = "lpa_bin",
                                seed = 47,
                                threshold = 0.5)
+
+#sensitivity analysis - no lpa gene
+lpa_bin_allpop <- run_analysis(original_ukb_path = "cad_subtype/output_data/all_clean_original_ukb.csv",
+                               pheno_df_path = "cad_subtype/output_data/all_lpa_bin_mod1.csv",
+                               results_path = "cad_subtype/result_data/lpa_subtype",
+                               train_prop = 0.8,
+                               run_name = "c4d_no_lpa_all_ukb_cad_lpasub_bin",
+                               prsice_run_name = "c4d_no_lpa_prsice_all_ukb_cad_lpasub_bin",
+                               prset_run_name = "c4d_no_lpa_prset_all_ukb_cad_lpasub_bin",
+                               outcome_var = "lpa_bin",
+                               seed = 47,
+                               threshold = 0.5)
+
+stemi_bin_allpop <- run_analysis(original_ukb_path = "cad_subtype/output_data/all_clean_original_ukb.csv",
+                                 pheno_df_path = "cad_subtype/output_data/all_stemi_cad_bin_mod1.csv",
+                                 results_path = "cad_subtype/result_data/stemi_subtype",
+                                 train_prop = 0.8,
+                                 run_name = "c4d_all_ukb_cad_stemisub_bin",
+                                 prsice_run_name = "c4d_prsice_all_ukb_cad_stemisub_bin",
+                                 prset_run_name = "c4d_prset_all_ukb_cad_stemisub_bin",
+                                 outcome_var = "stemi_cad_bin",
+                                 seed = 47,
+                                 threshold = 0.5)
 ascvd_bin_allpop <- run_analysis(original_ukb_path = "cad_subtype/output_data/all_clean_original_ukb.csv",
                                  pheno_df_path = "cad_subtype/output_data/all_ascvd_cad_bin_mod1.csv",
                                  results_path = "cad_subtype/result_data/ascvd_subtype",
