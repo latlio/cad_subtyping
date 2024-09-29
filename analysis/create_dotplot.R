@@ -153,9 +153,12 @@ prep_data <- function(prset_summary_path,
 cad_pathways <- prep_data("cad_subtype/result_data/cad_bin/c4d_prset_all_ukb_cad_bin.summary",
                           "cad_subtype/result_data/cad_bin/c4d_prset_all_ukb_cad_bin_results.Rds") %>%
   mutate(subtype = "CAD")
-ascvd_pathways <- prep_data("cad_subtype/result_data/ascvd_subtype/c4d_prset_all_ukb_cad_ascvdsub_bin.summary",
-                            "cad_subtype/result_data/ascvd_subtype/c4d_prset_all_ukb_cad_ascvdsub_bin_results.Rds") %>%
-  mutate(subtype = "ASCVD")
+# ascvd_pathways <- prep_data("cad_subtype/result_data/ascvd_subtype/c4d_prset_all_ukb_cad_ascvdsub_bin.summary",
+#                             "cad_subtype/result_data/ascvd_subtype/c4d_prset_all_ukb_cad_ascvdsub_bin_results.Rds") %>%
+#   mutate(subtype = "ASCVD")
+stemi_pathways <- prep_data("cad_subtype/result_data/stemi_subtype/c4d_prset_all_ukb_cad_stemisub_bin.summary",
+                            "cad_subtype/result_data/stemi_subtype/c4d_prset_all_ukb_cad_stemisub_bin_results.Rds") %>%
+  mutate(subtype = "STEMI")
 unstable_pathways <- prep_data("cad_subtype/result_data/unstable_subtype/c4d_prset_all_ukb_cad_unstablesub_bin.summary",
                                "cad_subtype/result_data/unstable_subtype/c4d_prset_all_ukb_cad_unstablesub_bin_results.Rds") %>%
   mutate(subtype = "Unstable")
@@ -173,7 +176,7 @@ all_pathways <- ldl_pathways %>%
   bind_rows(lpa_pathways) %>% 
   bind_rows(occlusive_pathways) %>% 
   bind_rows(unstable_pathways) %>% 
-  bind_rows(ascvd_pathways) %>% 
+  bind_rows(stemi_pathways) %>% 
   bind_rows(cad_pathways)
 
 all_pathways_plot <- ggplot(all_pathways,
@@ -202,7 +205,9 @@ all_pathways_plot <- ggplot(all_pathways,
        label = NULL) +
   theme(axis.text.x = element_text(size = 16),
         axis.text.y = element_text(size = 12),
+        axis.title.x = element_text(size = 30),
         axis.title.y = element_blank(),
+        legend.title = element_text(size = 20),
         legend.text = element_text(size = 16)) +
   facet_wrap(~ subtype, scales = "free",
              nrow = 3,
@@ -210,7 +215,39 @@ all_pathways_plot <- ggplot(all_pathways,
   guides(label = "none")
 all_pathways_plot
 
-ggsave("cad_subtype/result_data/c4d_pathways.png",
+ggsave("cad_subtype/result_data/c4d_pathways2.tiff",
        all_pathways_plot,
        width = 20, height = 9)
 
+# Sensitivity analysis: Lpa gene removed
+lpa_sensitivity_pathways <- prep_data("cad_subtype/result_data/lpa_subtype/c4d_no_lpa_prset_all_ukb_cad_lpasub_bin.summary",
+                                      "cad_subtype/result_data/lpa_subtype/c4d_no_lpa_prset_all_ukb_cad_lpasub_bin_results.Rds") %>%
+  mutate(subtype = "Lpa")
+
+lpa_sens_plot <- ggplot(lpa_sensitivity_pathways,
+       aes(x = reorder_within(term, prs_r2, subtype), 
+           y = prs_r2, size = num_snp, color = competitive_p)) +
+  geom_point() +
+  scale_size(range = c(5, 20)) +
+  scale_x_reordered() +
+  scale_shape_manual(
+    values = c("No" = 16, "Yes" = 8)
+  ) +
+  coord_flip() +
+  theme_bw() +
+  labs(y = bquote(R^2),
+       size = "Number of \n SNPs",
+       color = "Competitive \n p-value",
+       shape = "Lasso-selected",
+       label = NULL) +
+  theme(axis.text.x = element_text(size = 16),
+        axis.text.y = element_text(size = 16),
+        axis.title.x = element_text(size = 30),
+        axis.title.y = element_blank(),
+        legend.title = element_text(size = 16),
+        legend.text = element_text(size = 16)) +
+  guides(label = "none")
+ggsave("cad_subtype/result_data/lpa_subtype/lpa_sensitivity_pathways.tiff",
+       plot = lpa_sens_plot, 
+       height = 9,
+       width = 10)

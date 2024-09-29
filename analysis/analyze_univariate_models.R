@@ -425,14 +425,14 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
     labs(x = "PRS (standardized)",
          y = "Density",
          fill = "Sex") + 
-    theme(axis.text = element_text(size = 20),
-          axis.title = element_text(size = 20),
-          legend.title = element_text(size = 20), 
-          legend.text = element_text(size = 20),
+    theme(axis.text = element_text(size = 30),
+          axis.title = element_text(size = 30),
+          legend.title = element_text(size = 30), 
+          legend.text = element_text(size = 26),
           panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
           panel.background = element_blank(), axis.line = element_line(colour = "black"),
           legend.position=c(0.8,0.9))
-  ggsave(paste0(results_path, "/", run_name, "_prs_density_sex_plot.png"), 
+  ggsave(paste0(results_path, "/", run_name, "_prs_density_sex_plot.tiff"), 
          prs_density_sex_plot,
          width = 10,
          height = 9)
@@ -450,14 +450,14 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
     labs(x = "Age",
          y = "PRS (standardized)",
          color = "Sex") +
-    theme(axis.text = element_text(size = 20),
-          axis.title = element_text(size = 20),
-          legend.title = element_text(size = 20), 
-          legend.text = element_text(size = 20),
+    theme(axis.text = element_text(size = 30),
+          axis.title = element_text(size = 30),
+          legend.title = element_text(size = 30), 
+          legend.text = element_text(size = 26),
           panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
           panel.background = element_blank(), axis.line = element_line(colour = "black"),
-          legend.position=c(0.2,0.9))
-  ggsave(paste0(results_path, "/", run_name, "_prs_scatter_age_sex_plot.png"), 
+          legend.position=c(0.25,0.9))
+  ggsave(paste0(results_path, "/", run_name, "_prs_scatter_age_sex_plot.tiff"), 
          prs_scatter_age_sex_plot,
          width = 10,
          height = 9)
@@ -469,12 +469,12 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
     theme_bw() +
     labs(x = "ASCVD",
          y = "PRS (standardized)") +
-    theme(axis.text = element_text(size = 20),
-          axis.title = element_text(size = 20),
+    theme(axis.text = element_text(size = 30),
+          axis.title = element_text(size = 30),
           panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
           panel.background = element_blank(), axis.line = element_line(colour = "black"),
           legend.position=c(0.1,0.9))
-  ggsave(paste0(results_path, "/", run_name, "_prs_scatter_ascvd_plot.png"), 
+  ggsave(paste0(results_path, "/", run_name, "_prs_scatter_ascvd_plot.tiff"), 
          prs_scatter_ascvd_plot,
          width = 10,
          height = 9)
@@ -486,12 +486,12 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
     theme_bw() +
     labs(x = "ApoA (standardized)",
          y = "PRS (standardized)") +
-    theme(axis.text = element_text(size = 20),
-          axis.title = element_text(size = 20),
+    theme(axis.text = element_text(size = 30),
+          axis.title = element_text(size = 30),
           panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
           panel.background = element_blank(), axis.line = element_line(colour = "black"),
           legend.position=c(0.1,0.9))
-  ggsave(paste0(results_path, "/", run_name, "_prs_scatter_apoa_plot.png"), 
+  ggsave(paste0(results_path, "/", run_name, "_prs_scatter_apoa_plot.tiff"), 
          prs_scatter_apoa_plot,
          width = 10,
          height = 9)
@@ -503,12 +503,12 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
     theme_bw() +
     labs(x = "ApoB (standardized)",
          y = "PRS (standardized)") +
-    theme(axis.text = element_text(size = 20),
-          axis.title = element_text(size = 20),
+    theme(axis.text = element_text(size = 30),
+          axis.title = element_text(size = 30),
           panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
           panel.background = element_blank(), axis.line = element_line(colour = "black"),
           legend.position=c(0.1,0.9))
-  ggsave(paste0(results_path, "/", run_name, "_prs_scatter_apob_plot.png"), 
+  ggsave(paste0(results_path, "/", run_name, "_prs_scatter_apob_plot.tiff"), 
          prs_scatter_apob_plot,
          width = 10,
          height = 9)
@@ -520,12 +520,12 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
     theme_bw() +
     labs(x = "LDL (standardized)",
          y = "PRS (standardized)") +
-    theme(axis.text = element_text(size = 20),
-          axis.title = element_text(size = 20),
+    theme(axis.text = element_text(size = 30),
+          axis.title = element_text(size = 30),
           panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
           panel.background = element_blank(), axis.line = element_line(colour = "black"),
           legend.position=c(0.1,0.9))
-  ggsave(paste0(results_path, "/", run_name, "_prs_scatter_ldl_plot.png"), 
+  ggsave(paste0(results_path, "/", run_name, "_prs_scatter_ldl_plot.tiff"), 
          prs_scatter_ldl_plot,
          width = 10,
          height = 9)
@@ -537,12 +537,12 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
     theme_bw() +
     labs(x = "HDL (standardized)",
          y = "PRS (standardized)") +
-    theme(axis.text = element_text(size = 20),
-          axis.title = element_text(size = 20),
+    theme(axis.text = element_text(size = 30),
+          axis.title = element_text(size = 30),
           panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
           panel.background = element_blank(), axis.line = element_line(colour = "black"),
           legend.position=c(0.1,0.9))
-  ggsave(paste0(results_path, "/", run_name, "_prs_scatter_hdl_plot.png"), 
+  ggsave(paste0(results_path, "/", run_name, "_prs_scatter_hdl_plot.tiff"), 
          prs_scatter_hdl_plot,
          width = 10,
          height = 9)
@@ -554,12 +554,12 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
     theme_bw() +
     labs(x = "Triglycerides (standardized)",
          y = "PRS (standardized)") +
-    theme(axis.text = element_text(size = 20),
-          axis.title = element_text(size = 20),
+    theme(axis.text = element_text(size = 30),
+          axis.title = element_text(size = 30),
           panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
           panel.background = element_blank(), axis.line = element_line(colour = "black"),
           legend.position=c(0.1,0.9))
-  ggsave(paste0(results_path, "/", run_name, "_prs_scatter_tri_plot.png"), 
+  ggsave(paste0(results_path, "/", run_name, "_prs_scatter_tri_plot.tiff"), 
          prs_scatter_tri_plot,
          width = 10,
          height = 9)
@@ -571,12 +571,12 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
     theme_bw() +
     labs(x = "C-Reactive Protein (standardized)",
          y = "PRS (standardized)") +
-    theme(axis.text = element_text(size = 20),
-          axis.title = element_text(size = 20),
+    theme(axis.text = element_text(size = 30),
+          axis.title = element_text(size = 30),
           panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
           panel.background = element_blank(), axis.line = element_line(colour = "black"),
           legend.position=c(0.1,0.9))
-  ggsave(paste0(results_path, "/", run_name, "_prs_scatter_crp_plot.png"), 
+  ggsave(paste0(results_path, "/", run_name, "_prs_scatter_crp_plot.tiff"), 
          prs_scatter_crp_plot,
          width = 10,
          height = 9)
@@ -588,12 +588,12 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
     theme_bw() +
     labs(x = "Lp(a) (standardized)",
          y = "PRS (standardized)") +
-    theme(axis.text = element_text(size = 20),
-          axis.title = element_text(size = 20),
+    theme(axis.text = element_text(size = 30),
+          axis.title = element_text(size = 30),
           panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
           panel.background = element_blank(), axis.line = element_line(colour = "black"),
           legend.position=c(0.1,0.9))
-  ggsave(paste0(results_path, "/", run_name, "_prs_scatter_lpa_plot.png"), 
+  ggsave(paste0(results_path, "/", run_name, "_prs_scatter_lpa_plot.tiff"), 
          prs_scatter_lpa_plot,
          width = 10,
          height = 9)
@@ -666,7 +666,8 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
          },
          lpa_bin = {
            formulas <- formulas %>%
-             filter(outcomes == outcome_var)
+             filter(outcomes == outcome_var,
+                    !univariate %in% c("lpa_std"))
            
            env_formulas <- env_formulas %>%
              filter(outcomes == outcome_var)
@@ -980,10 +981,10 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
     prset_only_boot_ci <- qread(paste0(results_path, "/", run_name, "_prset_only_boot_lasso.qs"))
     
     # Lasso CV plot
-    png(paste0(results_path, "/", run_name, "_prset_only_model_cv_plot.png"),
+    tiff(paste0(results_path, "/", run_name, "_prset_only_model_cv_plot.tiff"),
         width = "720",
         height = "648")
-    plot(prset_only_model$model)
+    plot(prset_only_model$model, cex.lab=2, cex.axis=2, cex.main=2, cex.sub=2)
     dev.off()
     
     # Pathway Weight plot ----
@@ -1009,14 +1010,15 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
       geom_hline(yintercept = 0) +
       geom_text_repel(data = prset_only_coefs_df %>%
                         slice_head(n = 10), 
-                      aes(label = pathway_id)) +
+                      aes(label = pathway_id),
+                      size = 8) +
       theme_bw() +
-      theme(axis.text = element_text(size = 20),
-            axis.title = element_text(size = 20)) +
+      theme(axis.text = element_text(size = 30),
+            axis.title = element_text(size = 30)) +
       labs(x = "Index",
            y = "Pathway Coefficient")
     
-    ggsave(paste0(results_path, "/", run_name, "_prset_only_weights_plot.png"), 
+    ggsave(paste0(results_path, "/", run_name, "_prset_only_weights_plot.tiff"), 
            prset_only_weights_plot,
            width = 10,
            height = 9)
@@ -1066,9 +1068,18 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
                                                                 formulas$univariate[.x],
                                                                 "_prset")))
     # Calibration curves ----
+    
     # Plotting calibration curves for prs, prset, 
     # clinical risk factor, clinical risk factor + prs,
     # clinical risk factor + prset
+    
+    univariate_models <- qread(paste0(results_path, "/", run_name,
+                                      "_univariate_bin_results.qs"))
+    genome_models <- qread(paste0(results_path, "/", run_name,
+                                  "_genome_bin_results.qs"))
+    prset_models <- qread(paste0(results_path, "/", run_name,
+                                 "_prset_bin_results.qs"))
+    
     convert_list_to_tibble <- function(model,
                                        .colnames) {
       test_preds <- model %>%
@@ -1103,6 +1114,7 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
                           "apob_std_prs",
                           "ldl_std_prs",
                           "hdl_std_prs",
+                          "lpa_std_prs",
                           "trigly_std_prs",
                           "crp_std_prs")) %>% 
       group_by(model) %>%
@@ -1141,13 +1153,13 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
            y = "Observed Event Rate",
            color = "Model") +
       theme_minimal() +
-      theme(axis.text = element_text(size = 20),
-            axis.title = element_text(size = 20),
-            legend.title = element_text(size = 20), 
-            legend.text = element_text(size = 18),
+      theme(axis.text = element_text(size = 30),
+            axis.title = element_text(size = 30),
+            legend.title = element_text(size = 30), 
+            legend.text = element_text(size = 26),
             panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
             panel.background = element_blank(), axis.line = element_line(colour = "black"),
-            legend.position = c(0.15,0.8))
+            legend.position = c(0.2,0.75))
     
     cal_curve_prs_density_plot <- ggplot(cal_curve_prs, 
                                          aes(x = prediction,
@@ -1156,17 +1168,15 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
       scale_x_continuous(limits = c(0,1), breaks = seq(0, 1, by = 0.1)) +
       xlab("Predicted Probability") +
       ylab("Density") +
-      theme(axis.text = element_text(size = 20),
-            axis.title = element_text(size = 20),
-            legend.title = element_text(size = 20), 
-            legend.text = element_text(size = 18),
+      theme(axis.text = element_text(size = 30),
+            axis.title = element_text(size = 30),
             panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
             panel.background = element_blank(), axis.line = element_line(colour = "black"),
             legend.position = "none")
     
     cal_curve_prs_final_plot <- cal_curve_prs_plot / cal_curve_prs_density_plot + plot_layout(heights =  c(4,1))
     
-    ggsave(paste0(results_path, "/", run_name, "_cal_curve_prs_plot.png"), 
+    ggsave(paste0(results_path, "/", run_name, "_cal_curve_prs_plot.tiff"), 
            cal_curve_prs_final_plot,
            width = 10,
            height = 9)
@@ -1178,6 +1188,7 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
                           "apob_std_prset",
                           "ldl_std_prset",
                           "hdl_std_prset",
+                          "lpa_std_prset",
                           "trigly_std_prset",
                           "crp_std_prset")) %>% 
       group_by(model) %>%
@@ -1215,13 +1226,13 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
            y = "Observed Event Rate",
            color = "Model") +
       theme_minimal() +
-      theme(axis.text = element_text(size = 20),
-            axis.title = element_text(size = 20),
-            legend.title = element_text(size = 20), 
-            legend.text = element_text(size = 18),
+      theme(axis.text = element_text(size = 30),
+            axis.title = element_text(size = 30),
+            legend.title = element_text(size = 30), 
+            legend.text = element_text(size = 26),
             panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
             panel.background = element_blank(), axis.line = element_line(colour = "black"),
-            legend.position = c(0.15,0.8))
+            legend.position = c(0.2,0.75))
     
     cal_curve_prset_density_plot <- ggplot(cal_curve_prset, 
                                            aes(x = prediction,
@@ -1231,17 +1242,15 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
       scale_x_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.1)) +
       xlab("Predicted Probability") +
       ylab("Density") +
-      theme(axis.text = element_text(size = 20),
-            axis.title = element_text(size = 20),
-            legend.title = element_text(size = 20), 
-            legend.text = element_text(size = 18),
+      theme(axis.text = element_text(size = 30),
+            axis.title = element_text(size = 30),
             panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
             panel.background = element_blank(), axis.line = element_line(colour = "black"),
             legend.position = "none")
     
     cal_curve_prset_final_plot <- cal_curve_prset_plot / cal_curve_prset_density_plot + plot_layout(heights =  c(4,1))
     
-    ggsave(paste0(results_path, "/", run_name, "_cal_curve_prset_plot.png"), 
+    ggsave(paste0(results_path, "/", run_name, "_cal_curve_prset_plot.tiff"), 
            cal_curve_prset_final_plot,
            width = 10,
            height = 9)
@@ -1279,13 +1288,6 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
     
     # Creating AUC plots ----
     message("Creating AUC plots...\n")
-    
-    univariate_models <- qread(paste0(results_path, "/", run_name,
-                                      "_univariate_bin_results.qs"))
-    genome_models <- qread(paste0(results_path, "/", run_name,
-                                  "_genome_bin_results.qs"))
-    prset_models <- qread(paste0(results_path, "/", run_name,
-                                 "_prset_bin_results.qs"))
     
     univariate_auc_cis <- map(seq(univariate_models), ~qread(paste0(results_path, 
                                                                     "/",
@@ -1421,7 +1423,7 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
       #               y = ypos),
       geom_text(aes(label = round(prop, 1)),
                 position = position_stack(vjust = 0.5),
-                size = 6) +
+                size = 8) +
       # ggrepel::geom_label_repel(aes(label = !!sym(outcome_var),
       #                               y = ypos),
       #                           size = 3,
@@ -1434,7 +1436,8 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
             axis.text.x = element_blank(),
             panel.grid = element_blank(),
             legend.position = "bottom",
-            legend.title = element_blank()) +
+            legend.title = element_blank(),
+            legend.text = element_text(size = 20)) +
       guides(fill = guide_legend(nrow = 2)) +
       scale_fill_manual(
         values = subtype_pie_colors,
@@ -1486,14 +1489,14 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
                          ymax = ul),
                      position = position_dodge2(width = .9, preserve = "single")) +
       theme_bw() +
-      theme(plot.title = element_text(size = 22),
+      theme(plot.title = element_text(size = 26),
             axis.title.x = element_blank(), 
-            axis.title.y = element_text(size = 18),
+            axis.title.y = element_text(size = 30),
             panel.grid = element_blank(), 
             # legend.position = "bottom",
             legend.position = "none",
-            axis.text.x = element_text(angle = 45, hjust = 1, size = 16),
-            axis.text.y = element_text(size = 16)) +
+            axis.text.x = element_text(angle = 45, hjust = 1, size = 26),
+            axis.text.y = element_text(size = 26)) +
       coord_cartesian(ylim = c(0.5, 1)) +
       # ggsci::scale_fill_npg() +
       scale_fill_manual(values = c(`Genome-wide PRS + Age, Sex, PCs` = "#70b7f3",
@@ -1508,10 +1511,10 @@ run_analysis <- function(original_ukb_path = "clean_original_ukb.csv",
       guides(fill = guide_legend(nrow = 2)) +
       annotation_custom(
         ggplotGrob(subtype_pie),
-        xmin = 0.5, xmax = 2, ymin = 0.8, ymax = 1
+        xmin = 0.5, xmax = 3, ymin = 0.7, ymax = 1
       )
     
-    ggsave(paste0(results_path, "/", run_name, "_univariate_test_auc.png"), 
+    ggsave(paste0(results_path, "/", run_name, "_univariate_test_auc.tiff"), 
            all_auc_plot,
            width = 10,
            height = 9)
