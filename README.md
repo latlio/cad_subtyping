@@ -1,16 +1,15 @@
 # Code for "Prediction of Coronary Artery Disease Subtypes Using Clinical and Genetic Risk Factors"
 
-**Lathan Liou**
-Judit Garcia Gonzalez
-Beatrice Wu
-Zhe Wang
-Shing Wan Choi
-Clive J Hoggart
-Amy R Kontorovich
-Jason C Kovacic
+**Lathan Liou**, 
+Judit Garcia Gonzalez, 
+Beatrice Wu, 
+Zhe Wang, 
+Clive J Hoggart, 
+Amy R Kontorovich, 
+Jason C Kovacic, 
 Paul O'Reilly
 
-This paper has been submitted for publication in Arteriosclerosis, Thrombosis, and Vascular Biology (ATVB).
+This paper has been submitted for publication in *Arteriosclerosis, Thrombosis, and Vascular Biology (ATVB)*.
 
 ![](/figures/main_figure.png)
 
@@ -21,10 +20,16 @@ This paper has been submitted for publication in Arteriosclerosis, Thrombosis, a
 
 **Background**
 Coronary Artery Disease (CAD) is a complex, heterogeneous disease with distinct etiological mechanisms. These different etiologies may give rise to multiple subtypes of CAD that could benefit from alternative preventions and treatments. However, so far there have been no systematic efforts to predict CAD subtypes using clinical and genetic factors. 
+
+
 **Methods**
 Here we trained and applied statistical models incorporating clinical and genetic factors to predict CAD subtypes in 26,036 CAD patients in the UK Biobank. We performed external validation of the UK Biobank models in the US-based All of Us cohort (8,598 CAD patients). Subtypes were defined as high vs. normal low-density lipoprotein (LDL) levels, high vs. normal lipoprotein A (Lpa) levels, ST-elevation myocardial infarction (STEMI) vs. non-ST-elevation myocardial infarction (NSTEMI), occlusive vs. non-occlusive CAD, and stable vs. unstable CAD. Clinical predictors included levels of apolipoprotein A, apolipoprotein B, high-density lipoprotein, triglycerides, and C-reactive protein. Genetic predictors were genome-wide and pathway-based polygenic risk scores (PRS). 
+
+
 **Results**
 Results showed that both clinical-only and genetic-only models can predict CAD subtypes, while combining clinical and genetic factors leads to greater predictive accuracy. Pathway-based PRS had higher discriminatory power than genome-wide PRS for the Lpa and LDL subtypes, and provided insights into their etiologies. The ten pathway PRS most predictive of the LDL subtype involved cholesterol metabolism. Pathway PRS models had poor generalizability to the All of Us cohort.
+
+
 **Conclusions**
 In summary, we present the first systematic demonstration that CAD subtypes can be distinguished by clinical and genomic risk factors, which could have important implications for stratified cardiovascular medicine.
 

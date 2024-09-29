@@ -91,7 +91,6 @@ prepare_phenotype <- function(input_path,
                               impute = FALSE,
                               keep_base_only = TRUE,
                               european_only = TRUE) {
-  browser()
   
   #outcome var: 
   # Setup ----
@@ -123,98 +122,29 @@ prepare_phenotype <- function(input_path,
         race %in% c(4, 4001, 4002, 4003) ~ 3,
         race %in% c(2, 2001, 2002, 2003, 2004) ~ 4,
         TRUE ~ 5
+      )),
+      fam_hx = as.factor(case_when(
+        dad_fam_hx == 0 & mom_fam_hx == 0 ~ 0,
+        TRUE ~ 1
       ))
     ) %>%
     select(-c(dias_bp_auto, dx_date, dad_fam_hx, mom_fam_hx, sib_fam_hx, statin_follow)) %>%
     mutate(across(diabetes:bp_med2, convert_idk_to_na)) %>%
     mutate(across(diabetes:bp_med2, convert_neg_10)) %>%
-    mutate(bp_med = coalesce(bp_med1, bp_med2),
+    mutate(age2 = age^2,
+           bp_med = coalesce(bp_med1, bp_med2),
            bp_med_bin = ifelse(bp_med == 2, 1, 0), #antihypertensives
-           # premature_cad_bin = case_when(
-           #0 = female, 1 = male
-           # age is age at diagnosis
-           #   sex == 1 & age < 40 & cad_bin == 1 ~ 1,
-           #   sex == 1 & age >= 40 & cad_bin == 1 ~ 0,
-           #   sex == 0 & age < 50 & cad_bin == 1 ~ 1,
-           #   sex == 0 & age >= 50 & cad_bin == 1 ~ 0,
-           #   TRUE ~ 0
-           # ),
-           ses_std = standardize(ses),
+           premature_cad_bin = case_when(
+             #0 = female, 1 = male
+             # age is age at diagnosis
+             sex == 1 & age < 40 & cad_bin == 1 ~ 1,
+             sex == 1 & age >= 40 & cad_bin == 1 ~ 0,
+             sex == 0 & age < 50 & cad_bin == 1 ~ 1,
+             sex == 0 & age >= 50 & cad_bin == 1 ~ 0,
+             TRUE ~ 0
+           ),
            bmi_std = standardize(bmi),
            sys_bp_std = standardize(sys_bp_auto),
-           smoke = case_when(
-             current_smoke == 1 | past_smoke == 1 ~ 1,
-             TRUE ~ 0
-           ),
-           duration_moderate_pa = case_when(
-             n_days_moderate_pa == 0 ~ 0,
-             TRUE ~ duration_moderate_pa
-           ),
-           duration_vigorous_pa = case_when(
-             n_days_vigorous_pa == 0 ~ 0,
-             TRUE ~ duration_vigorous_pa
-           ),
-           pa = case_when(
-             n_days_moderate_pa > 3 | 
-               duration_moderate_pa > 150 | 
-               n_days_vigorous_pa > 3 | 
-               duration_vigorous_pa > 150 ~ 1,
-             TRUE ~ 0
-           ),
-           fruit = normalize_x(fresh_fruit + dried_fruit/5),
-           veg = normalize_x(cooked_veg/3 + raw_veg/3),
-           wholegrain = case_when(
-             bread_type == 3 & !cereal_type %in% c(1,3,4) ~ normalize_x(bread/7),
-             bread_type != 3 & cereal_type %in% c(1,3,4) ~ normalize_x(cereal/7),
-             bread_type == 3 & cereal_type %in% c(1,3,4) ~ normalize_x(bread/7 + cereal/7),
-             TRUE ~ 0),
-           refined_grain = 1-wholegrain, #not sure about this
-           fish = normalize_x(oily_fish + non_oily_fish),
-           dairy = normalize_x(cheese),
-           milk_cat = ifelse(milk %in% 1:5, 1, 0),
-           spread_cat = ifelse(spread %in% 1:3, 1, 0),
-           vegetable_oils = normalize_x(milk_cat + spread_cat),
-           processed_meat_norm = 1 - normalize_x(processed_meat),
-           unprocessed_meat = 1 - normalize_x(poultry + beef + lamb + pork),
-           sugar_cat = case_when(
-             added_sugar == 4 ~ 1, #healthy
-             TRUE ~ 0
-           )) %>% # have to break up mutate here so that rowSums works
-    mutate(diet = rowSums(select(., "fruit",
-                                 "veg", 
-                                 "wholegrain",
-                                 "refined_grain",
-                                 "fish",
-                                 "dairy",
-                                 "vegetable_oils",
-                                 "processed_meat_norm",
-                                 "unprocessed_meat",
-                                 "sugar_cat"), na.rm = TRUE),
-           sleep_duration_cat = case_when(
-             sleep_duration >= 7 ~ 1, #healthy
-             TRUE ~ 0
-           ),
-           insomnia_cat = case_when(
-             insomnia == 1 ~ 1, #healthy
-             TRUE ~ 0
-           ),
-           snoring_cat = case_when(
-             snoring == 0 ~ 1, #healthy
-             TRUE ~ 0
-           ),
-           narcolepsy_cat = case_when(
-             narcolepsy == 0 ~ 1, #healthy
-             TRUE ~ 0
-           ),
-           sleep = sleep_duration_cat + insomnia_cat + snoring_cat + narcolepsy_cat,
-           creatinine_std = standardize(creatinine),
-           egfr = case_when(
-             sex == 0 ~ 142 * pmin(creatinine_std/0.9, 1)^-0.302 *
-               pmax(creatinine_std/0.9, 1)^-1.200 *
-               0.9938^age,
-             sex == 1 ~ 142 * pmin(creatinine_std/0.7, 1)^-0.241 *
-               pmax(creatinine_std/0.7, 1)^-1.200 *
-               0.9938^age*1.012),
            trigly_std = standardize(trigly),
            ldl_chol = ldl_chol*18.0182,
            ldl_bin = ifelse(ldl_chol >= 70, 1, 0),
@@ -222,37 +152,183 @@ prepare_phenotype <- function(input_path,
            hdl_std = standardize(hdl_chol),
            chol_std = standardize(chol),
            lpa_bin = ifelse(lpa >= 150, 1, 0),
+           highlpa_bin = case_when(
+             lpa >= 150 & cad_bin == 1 ~ 1,
+             cad_bin == 0 ~ 0,
+             TRUE ~ NA
+           ),
+           lowlpa_bin = case_when(
+             lpa < 150 & cad_bin == 1 ~ 1,
+             cad_bin == 0 ~ 0,
+             TRUE ~ NA
+           ),
            lpa_std = standardize(lpa),
            glucose_std = standardize(glucose),
            crp_std = standardize(crp),
            apoa_std = standardize(apoa),
-           apob_std = standardize(apob)) %>%
-    select(-c(bp_med, bp_med1, bp_med2, current_smoke, past_smoke,
-              n_days_moderate_pa, duration_moderate_pa,
-              n_days_vigorous_pa, duration_vigorous_pa, fruit, fresh_fruit, 
-              dried_fruit, veg, cooked_veg, raw_veg, wholegrain, bread, cereal,
-              bread_type, cereal_type, refined_grain, fish, oily_fish, 
-              non_oily_fish, dairy, cheese, milk_cat, milk, spread_cat,
-              spread, vegetable_oils, processed_meat_norm, processed_meat, 
-              unprocessed_meat, poultry, beef, lamb, pork, added_sugar, 
-              sugar_cat, sleep_duration_cat, sleep_duration, insomnia_cat,
-              insomnia, snoring_cat, snoring, narcolepsy_cat,
-              narcolepsy, birth_country, bmi, trigly, 
-              lpa, glucose, creatinine, crp, apoa, apob, creatinine_std)) %>%
-    select(-c(pc16:pc40)) %>%
-    mutate(cad_icd = str_replace_all(cad_icd, "\"", ""),
-           age2 = age^2) %>%
-    mutate(occlusive_cad_bin = case_when(
-      str_detect(cad_icd, "I2111|I2121|I2129|I213|I220|I228|I240|
+           apob_std = standardize(apob),
+           smoke = case_when(
+             current_smoke == 1 | past_smoke == 1 ~ 1,
+             TRUE ~ 0
+           ),
+           alc_bin = case_when(
+             alcohol %in% c(5,6) ~ 0, #social drinker or never drinker
+             TRUE ~ 1
+           ),
+           creatinine_std = standardize(creatinine),
+           egfr = case_when(
+             sex == 0 ~ 142 * pmin(creatinine_std/0.9, 1, na.rm = TRUE)^-0.302 *
+               pmax(creatinine_std/0.9, 1, na.rm = TRUE)^-1.200 *
+               0.9938^age,
+             sex == 1 ~ 142 * pmin(creatinine_std/0.7, 1, na.rm = TRUE)^-0.241 *
+               pmax(creatinine_std/0.7, 1, na.rm = TRUE)^-1.200 *
+               0.9938^age*1.012),
+           cad_icd = str_replace_all(cad_icd, "\"", ""),
+           stemi_cad_bin = case_when(
+             str_detect(cad_icd, "I210|I211|I212|I213|I220|I221|I228|I229|4100|4101|4102|4103|4104|
+                       4105|4106|4108") ~ 1, #STEMI
+             str_detect(cad_icd, "I214|I222|4107|4109") ~ 0, #NSTEMI
+             TRUE ~ NA
+           ),
+           unstable_cad_bin = case_when(
+             # 1 = ACS, 0 = stable
+             str_detect(cad_icd, "I201|I202|I203|I208|I209|I251|I259") ~ 0,
+             !str_detect(cad_icd, "I201|I202|I203|I208|I209|I251|I259") & cad_bin == 1 ~ 1,
+             TRUE ~ NA),
+           occlusive_cad_bin = case_when(
+             str_detect(cad_icd, "I2111|I2121|I2129|I213|I220|I228|I240|
                         I2510|I257|I2581|I2582|I2583|I2584|41090|41181|4140|4142|4143|4144") |
-        str_detect(operation_pheno, "K401|K402|K403|K404|K411|K412|K413|K414|K451|K452|K453|K454|K455|K491|K492|
+               str_detect(operation_pheno, "K401|K402|K403|K404|K411|K412|K413|K414|K451|K452|K453|K454|K455|K491|K492|
                         K498|K499|K502|K751|K752|K753|K754|K758|K759") ~ 1,
-      TRUE ~ 0),
-      unstable_cad_bin = case_when(
-        # 1 = ACS, 0 = stable
-        str_detect(cad_icd, "I201|I202|I203|I208|I209|I251|I259") ~ 0,
-        !str_detect(cad_icd, "I201|I202|I203|I208|I209|I251|I259") & cad_bin == 1 ~ 1,
-        TRUE ~ NA))
+             TRUE ~ 0)) %>% 
+    # mutate(bp_med = coalesce(bp_med1, bp_med2),
+    #        bp_med_bin = ifelse(bp_med == 2, 1, 0), #antihypertensives
+    #        # premature_cad_bin = case_when(
+    #        #0 = female, 1 = male
+    #        # age is age at diagnosis
+    #        #   sex == 1 & age < 40 & cad_bin == 1 ~ 1,
+    #        #   sex == 1 & age >= 40 & cad_bin == 1 ~ 0,
+    #        #   sex == 0 & age < 50 & cad_bin == 1 ~ 1,
+    #        #   sex == 0 & age >= 50 & cad_bin == 1 ~ 0,
+    #        #   TRUE ~ 0
+    #        # ),
+    #        ses_std = standardize(ses),
+    #        bmi_std = standardize(bmi),
+    #        sys_bp_std = standardize(sys_bp_auto),
+    #        smoke = case_when(
+    #          current_smoke == 1 | past_smoke == 1 ~ 1,
+    #          TRUE ~ 0
+    #        ),
+    #        duration_moderate_pa = case_when(
+    #          n_days_moderate_pa == 0 ~ 0,
+    #          TRUE ~ duration_moderate_pa
+    #        ),
+    #        duration_vigorous_pa = case_when(
+    #          n_days_vigorous_pa == 0 ~ 0,
+    #          TRUE ~ duration_vigorous_pa
+    #        ),
+    #        pa = case_when(
+    #          n_days_moderate_pa > 3 | 
+    #            duration_moderate_pa > 150 | 
+    #            n_days_vigorous_pa > 3 | 
+    #            duration_vigorous_pa > 150 ~ 1,
+    #          TRUE ~ 0
+    #        ),
+    #        fruit = normalize_x(fresh_fruit + dried_fruit/5),
+    #        veg = normalize_x(cooked_veg/3 + raw_veg/3),
+    #        wholegrain = case_when(
+    #          bread_type == 3 & !cereal_type %in% c(1,3,4) ~ normalize_x(bread/7),
+    #          bread_type != 3 & cereal_type %in% c(1,3,4) ~ normalize_x(cereal/7),
+    #          bread_type == 3 & cereal_type %in% c(1,3,4) ~ normalize_x(bread/7 + cereal/7),
+    #          TRUE ~ 0),
+    #        refined_grain = 1-wholegrain, #not sure about this
+    #        fish = normalize_x(oily_fish + non_oily_fish),
+    #        dairy = normalize_x(cheese),
+    #        milk_cat = ifelse(milk %in% 1:5, 1, 0),
+    #        spread_cat = ifelse(spread %in% 1:3, 1, 0),
+    #        vegetable_oils = normalize_x(milk_cat + spread_cat),
+    #        processed_meat_norm = 1 - normalize_x(processed_meat),
+    #        unprocessed_meat = 1 - normalize_x(poultry + beef + lamb + pork),
+    #        sugar_cat = case_when(
+    #          added_sugar == 4 ~ 1, #healthy
+    #          TRUE ~ 0
+    #        )) %>% # have to break up mutate here so that rowSums works
+    # mutate(diet = rowSums(select(., "fruit",
+    #                              "veg", 
+    #                              "wholegrain",
+    #                              "refined_grain",
+    #                              "fish",
+    #                              "dairy",
+    #                              "vegetable_oils",
+    #                              "processed_meat_norm",
+    #                              "unprocessed_meat",
+    #                              "sugar_cat"), na.rm = TRUE),
+    #        sleep_duration_cat = case_when(
+    #          sleep_duration >= 7 ~ 1, #healthy
+    #          TRUE ~ 0
+    #        ),
+    #        insomnia_cat = case_when(
+    #          insomnia == 1 ~ 1, #healthy
+    #          TRUE ~ 0
+    #        ),
+    #        snoring_cat = case_when(
+    #          snoring == 0 ~ 1, #healthy
+    #          TRUE ~ 0
+    #        ),
+    #        narcolepsy_cat = case_when(
+    #          narcolepsy == 0 ~ 1, #healthy
+    #          TRUE ~ 0
+    #        ),
+    #        sleep = sleep_duration_cat + insomnia_cat + snoring_cat + narcolepsy_cat,
+    #        creatinine_std = standardize(creatinine),
+    #        egfr = case_when(
+    #          sex == 0 ~ 142 * pmin(creatinine_std/0.9, 1)^-0.302 *
+    #            pmax(creatinine_std/0.9, 1)^-1.200 *
+    #            0.9938^age,
+    #          sex == 1 ~ 142 * pmin(creatinine_std/0.7, 1)^-0.241 *
+    #            pmax(creatinine_std/0.7, 1)^-1.200 *
+    #            0.9938^age*1.012),
+    #        trigly_std = standardize(trigly),
+    #        ldl_chol = ldl_chol*18.0182,
+    #        ldl_bin = ifelse(ldl_chol >= 70, 1, 0),
+    #        ldl_std = standardize(ldl_chol),
+    #        hdl_std = standardize(hdl_chol),
+    #        chol_std = standardize(chol),
+    #        lpa_bin = ifelse(lpa >= 150, 1, 0),
+    #        lpa_std = standardize(lpa),
+    #        glucose_std = standardize(glucose),
+    #        crp_std = standardize(crp),
+    #        apoa_std = standardize(apoa),
+    #        apob_std = standardize(apob)) %>%
+    # select(-c(bp_med, bp_med1, bp_med2, current_smoke, past_smoke,
+    #           n_days_moderate_pa, duration_moderate_pa,
+    #           n_days_vigorous_pa, duration_vigorous_pa, fruit, fresh_fruit, 
+    #           dried_fruit, veg, cooked_veg, raw_veg, wholegrain, bread, cereal,
+    #           bread_type, cereal_type, refined_grain, fish, oily_fish, 
+    #           non_oily_fish, dairy, cheese, milk_cat, milk, spread_cat,
+    #           spread, vegetable_oils, processed_meat_norm, processed_meat, 
+    #           unprocessed_meat, poultry, beef, lamb, pork, added_sugar, 
+    #           sugar_cat, sleep_duration_cat, sleep_duration, insomnia_cat,
+    #           insomnia, snoring_cat, snoring, narcolepsy_cat,
+    #           narcolepsy, birth_country, bmi, trigly, 
+    #           lpa, glucose, creatinine, crp, apoa, apob, creatinine_std))
+    mutate(ascvd = case_when(
+      # untreated male
+      sex == 0 & bp_med_bin == 0 ~ 1 - 0.9144^exp((12.344*log(age) + 11.853*log(chol) - 2.664*log(age)*log(chol) - 7.99*log(hdl_chol) +
+                                                     1.769*log(age)*log(hdl_chol) + 1.764*log(sys_bp_auto) + 7.837*smoke - 1.795*log(age)*smoke + 0.658*diabetes) - 61.18),
+      # treated male
+      sex == 0 & bp_med_bin == 1 ~ 1 - 0.9144^exp((12.344*log(age) + 11.853*log(chol) - 2.664*log(age)*log(chol) - 7.99*log(hdl_chol) +
+                                                     1.769*log(age)*log(hdl_chol) + 1.797*log(sys_bp_auto) + 7.837*smoke - 1.795*log(age)*smoke + 0.658*diabetes) - 61.18),
+      # untreated female
+      sex == 1 & bp_med_bin == 0 ~ 1 - 0.9665^exp((-29.799*log(age) + 4.884*log(age)^2 + 13.540*log(chol) - 3.114*log(age)*log(chol) - 13.578*log(hdl_chol) +
+                                                     3.149*log(age)*log(hdl_chol) + 1.957*log(sys_bp_auto) + 7.574*smoke - 1.665*log(age)*smoke + 0.661*diabetes) + 29.18),
+      # treated female
+      sex == 1 & bp_med_bin == 1 ~ 1 - 0.9665^exp((-29.799*log(age) + 4.884*log(age)^2 + 13.540*log(chol) - 3.114*log(age)*log(chol) - 13.578*log(hdl_chol) +
+                                                     3.149*log(age)*log(hdl_chol) + 2.019*log(sys_bp_auto) + 7.574*smoke - 1.665*log(age)*smoke + 0.661*diabetes) + 29.18)
+    )) %>% 
+    select(-c(pc16:pc40)) %>%
+    select(-c(bp_med, bp_med1, bp_med2, current_smoke, past_smoke,
+              bmi, trigly, lpa, glucose, creatinine, crp, apoa, apob, creatinine_std))
   
   write_csv(pheno_df, "cad_subtype/output_data/all_clean_original_ukb.csv")
   
@@ -326,7 +402,29 @@ prepare_phenotype <- function(input_path,
                     !is.na(!!ensym(outcome_var))) %>%
              janitor::remove_empty(which = "cols")
          },
+         highlpa_bin = {
+           pheno_df <- pheno_df %>%
+             as.data.frame() %>% 
+             filter(statin_baseline == 0 | is.na(statin_baseline),
+                    !is.na(!!ensym(outcome_var))) %>%
+             janitor::remove_empty(which = "cols")
+         },
+         lowlpa_bin = {
+           pheno_df <- pheno_df %>%
+             as.data.frame() %>% 
+             filter(statin_baseline == 0 | is.na(statin_baseline),
+                    !is.na(!!ensym(outcome_var))) %>%
+             janitor::remove_empty(which = "cols")
+         },
          premature_cad_bin = {
+           pheno_df <- pheno_df %>%
+             as.data.frame() %>% 
+             filter(cad_bin == 1,
+                    statin_baseline == 0 | is.na(statin_baseline),
+                    !is.na(!!ensym(outcome_var))) %>%
+             janitor::remove_empty(which = "cols")
+         },
+         stemi_cad_bin = {
            pheno_df <- pheno_df %>%
              as.data.frame() %>% 
              filter(cad_bin == 1,
@@ -536,7 +634,7 @@ lpa_pheno <- prepare_phenotype(input_path = "cad_subtype/input_data/",
 occlusive_cad_pheno <- prepare_phenotype(input_path = "cad_subtype/input_data/",
                                          output_path = "cad_subtype/output_data/",
                                          output_root_file_name = "occlusive_cad_bin",
-                                         sql_csv = "cad_subtypes_v3.csv",
+                                         sql_csv = "cad_subtypes_WORKING.csv",
                                          qc_file = "ukb18177-v2-qc.fam",
                                          dropout_file = "w18177_2023-04-25.csv",
                                          covariate_file = "ukb18177-v2.covar",
@@ -573,7 +671,7 @@ ascvd_cad_pheno <- prepare_phenotype(input_path = "cad_subtype/input_data/",
 cad_pheno_all <- prepare_phenotype(input_path = "cad_subtype/input_data/",
                                    output_path = "cad_subtype/output_data/",
                                    output_root_file_name = "all_cad_bin",
-                                   sql_csv = "cad_subtypes_v3.csv",
+                                   sql_csv = "cad_subtypes_v4.csv",
                                    qc_file = "ukb18177-allpop-qc.fam",
                                    dropout_file = "w18177_2023-04-25.csv",
                                    covariate_file = "ukb18177-v2.covar",
@@ -586,7 +684,7 @@ cad_pheno_all <- prepare_phenotype(input_path = "cad_subtype/input_data/",
 ldl_pheno_all <- prepare_phenotype(input_path = "cad_subtype/input_data/",
                                    output_path = "cad_subtype/output_data/",
                                    output_root_file_name = "all_ldl_bin",
-                                   sql_csv = "cad_subtypes_v3.csv",
+                                   sql_csv = "cad_subtypes_v4.csv",
                                    qc_file = "ukb18177-allpop-qc.fam",
                                    dropout_file = "w18177_2023-04-25.csv",
                                    covariate_file = "ukb18177-v2.covar",
@@ -599,7 +697,7 @@ ldl_pheno_all <- prepare_phenotype(input_path = "cad_subtype/input_data/",
 lpa_pheno_all <- prepare_phenotype(input_path = "cad_subtype/input_data/",
                                    output_path = "cad_subtype/output_data/",
                                    output_root_file_name = "all_lpa_bin",
-                                   sql_csv = "cad_subtypes_v3.csv",
+                                   sql_csv = "cad_subtypes_v4.csv",
                                    qc_file = "ukb18177-allpop-qc.fam",
                                    dropout_file = "w18177_2023-04-25.csv",
                                    covariate_file = "ukb18177-v2.covar",
@@ -608,6 +706,30 @@ lpa_pheno_all <- prepare_phenotype(input_path = "cad_subtype/input_data/",
                                    impute = FALSE,
                                    keep_base_only = TRUE,
                                    european_only = FALSE)
+highlpa_pheno_all <- prepare_phenotype(input_path = "cad_subtype/input_data/",
+                                       output_path = "cad_subtype/output_data/",
+                                       output_root_file_name = "all_highlpa_bin",
+                                       sql_csv = "cad_subtypes_WORKING.csv",
+                                       qc_file = "ukb18177-allpop-qc.fam",
+                                       dropout_file = "w18177_2023-04-25.csv",
+                                       covariate_file = "ukb18177-v2.covar",
+                                       outcome_var = "highlpa_bin",
+                                       ses = FALSE,
+                                       impute = FALSE,
+                                       keep_base_only = TRUE,
+                                       european_only = FALSE)
+lowlpa_pheno_all <- prepare_phenotype(input_path = "cad_subtype/input_data/",
+                                      output_path = "cad_subtype/output_data/",
+                                      output_root_file_name = "all_lowlpa_bin",
+                                      sql_csv = "cad_subtypes_WORKING.csv",
+                                      qc_file = "ukb18177-allpop-qc.fam",
+                                      dropout_file = "w18177_2023-04-25.csv",
+                                      covariate_file = "ukb18177-v2.covar",
+                                      outcome_var = "lowlpa_bin",
+                                      ses = FALSE,
+                                      impute = FALSE,
+                                      keep_base_only = TRUE,
+                                      european_only = FALSE)
 
 # premature_cad_pheno <- prepare_phenotype(input_path = "cad_subtype/input_data/",
 #                                          output_path = "cad_subtype/output_data/",
@@ -621,10 +743,23 @@ lpa_pheno_all <- prepare_phenotype(input_path = "cad_subtype/input_data/",
 #                                          impute = FALSE,
 #                                          keep_base_only = TRUE)
 
+stemi_cad_pheno_all <- prepare_phenotype(input_path = "cad_subtype/input_data/",
+                                         output_path = "cad_subtype/output_data/",
+                                         output_root_file_name = "all_stemi_cad_bin",
+                                         sql_csv = "cad_subtypes_v4.csv",
+                                         qc_file = "ukb18177-allpop-qc.fam",
+                                         dropout_file = "w18177_2023-04-25.csv",
+                                         covariate_file = "ukb18177-v2.covar",
+                                         outcome_var = "stemi_cad_bin",
+                                         ses = FALSE,
+                                         impute = FALSE,
+                                         keep_base_only = TRUE,
+                                         european_only = FALSE)
+
 occlusive_cad_pheno_all <- prepare_phenotype(input_path = "cad_subtype/input_data/",
                                              output_path = "cad_subtype/output_data/",
                                              output_root_file_name = "all_occlusive_cad_bin",
-                                             sql_csv = "cad_subtypes_v3.csv",
+                                             sql_csv = "cad_subtypes_WORKING.csv",
                                              qc_file = "ukb18177-allpop-qc.fam",
                                              dropout_file = "w18177_2023-04-25.csv",
                                              covariate_file = "ukb18177-v2.covar",
@@ -637,7 +772,7 @@ occlusive_cad_pheno_all <- prepare_phenotype(input_path = "cad_subtype/input_dat
 unstable_cad_pheno_all <- prepare_phenotype(input_path = "cad_subtype/input_data/",
                                             output_path = "cad_subtype/output_data/",
                                             output_root_file_name = "all_unstable_cad_bin",
-                                            sql_csv = "cad_subtypes_v3.csv",
+                                            sql_csv = "cad_subtypes_v4.csv",
                                             qc_file = "ukb18177-allpop-qc.fam",
                                             dropout_file = "w18177_2023-04-25.csv",
                                             covariate_file = "ukb18177-v2.covar",
@@ -647,18 +782,18 @@ unstable_cad_pheno_all <- prepare_phenotype(input_path = "cad_subtype/input_data
                                             keep_base_only = TRUE,
                                             european_only = FALSE)
 
-ascvd_cad_pheno_all <- prepare_phenotype(input_path = "cad_subtype/input_data/",
-                                         output_path = "cad_subtype/output_data/",
-                                         output_root_file_name = "all_ascvd_cad_bin",
-                                         sql_csv = "cad_subtypes_v3.csv",
-                                         qc_file = "ukb18177-allpop-qc.fam",
-                                         dropout_file = "w18177_2023-04-25.csv",
-                                         covariate_file = "ukb18177-v2.covar",
-                                         outcome_var = "ascvd_cad_bin",
-                                         ses = FALSE,
-                                         impute = FALSE,
-                                         keep_base_only = TRUE,
-                                         european_only = FALSE)
+# ascvd_cad_pheno_all <- prepare_phenotype(input_path = "cad_subtype/input_data/",
+#                                          output_path = "cad_subtype/output_data/",
+#                                          output_root_file_name = "all_ascvd_cad_bin",
+#                                          sql_csv = "cad_subtypes_v3.csv",
+#                                          qc_file = "ukb18177-allpop-qc.fam",
+#                                          dropout_file = "w18177_2023-04-25.csv",
+#                                          covariate_file = "ukb18177-v2.covar",
+#                                          outcome_var = "ascvd_cad_bin",
+#                                          ses = FALSE,
+#                                          impute = FALSE,
+#                                          keep_base_only = TRUE,
+#                                          european_only = FALSE)
 
 # Scratchpad ----
 cad_pheno$adj %>%
